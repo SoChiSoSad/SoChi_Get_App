@@ -81,13 +81,14 @@ class AlbumInPage extends StatelessWidget {
                                 ),
                               ),
                               SizedBox(height: 4),
-                              Text(
-                                photo.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 12),
-                              ),
+                              // Text(
+                              //   photo.title,
+                              //   maxLines: 1,
+                              //   overflow: TextOverflow.ellipsis,
+                              //   textAlign: TextAlign.center,
+                              //   style: TextStyle(fontSize: 12),
+                              // ),
+                              Text("ảnh ${idx + 1}"),
                             ],
                           );
                         },

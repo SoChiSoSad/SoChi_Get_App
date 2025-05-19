@@ -87,15 +87,19 @@ class _CauchuyenInPageState extends State<CauchuyenInPage> {
                       bottom: Radius.circular(10.0),
                     ),
                   ),
+                  // child: Text(
+                  //   photo.title,
+                  //   style: const TextStyle(
+                  //     color: Colors.white,
+                  //     fontSize: 14,
+                  //   ),
+                  //   maxLines: 2,
+                  //   overflow: TextOverflow.ellipsis,
+                  //   textAlign: TextAlign.center,
+                  // ),
+
                   child: Text(
-                    photo.title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
+                    'ảnh ${photos.indexOf(photo) + 1}',
                   ),
                 ),
               ),
