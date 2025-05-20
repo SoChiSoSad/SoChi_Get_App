@@ -22,7 +22,7 @@ class _CauchuyenInPageState extends State<CauchuyenInPage> {
     List<PhotoModel> _randomPhotosTuan = [];
   List<PhotoModel> _randomPhotosDacBiet = [];
 
-  // DateTime? _lastUpdate; lưu trữ 1 ngày
+  // DateTime? _lastUpdate; //lưu trữ 1 ngày
 
   @override
   void initState() {
