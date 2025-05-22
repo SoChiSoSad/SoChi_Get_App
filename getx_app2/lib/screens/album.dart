@@ -17,14 +17,14 @@ class AlbumInPage extends StatelessWidget {
       create: (context) => PhotoBloc(PhotoRepository())..add(FetchPhotos()),
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Albums'),
+          title: const Text('Albums'),
           centerTitle: true,
           automaticallyImplyLeading: false,
         ),
         body: BlocBuilder<PhotoBloc, PhotoState>(
           builder: (context, state) {
             if (state is PhotoLoading) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             } else if (state is PhotoLoaded) {
               final photos = state.photos;
               final albums = <int, List<PhotoModel>>{};
@@ -42,12 +42,13 @@ class AlbumInPage extends StatelessWidget {
                   return ExpansionTile(
                     title: Row(
                       children: [
-                        Icon(Icons.photo_album_outlined, color: const Color.fromARGB(255, 7, 222, 255)), // Icon 📁
-                        SizedBox(width: 8),
+                        const Icon(Icons.photo_album_outlined,
+                            color: Color.fromARGB(255, 7, 222, 255)),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             albumPhotos.first.title,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
@@ -56,13 +57,13 @@ class AlbumInPage extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     children: [
                       GridView.builder(
                         shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
+                        physics: const NeverScrollableScrollPhysics(),
                         itemCount: albumPhotos.length,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 3,
                           crossAxisSpacing: 4,
                           mainAxisSpacing: 4,
@@ -75,20 +76,29 @@ class AlbumInPage extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                                 child: Image.network(
                                   photo.thumbnailUrl,
-                                  height: 100,
-                                  width: 100,
+                                  height: 120,
+                                  width: 120,
                                   fit: BoxFit.cover,
+                                  errorBuilder:
+                                      (context, error, stackTrace) {
+                                    return Container(
+                                      height: 80,
+                                      width: 80,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        Icons.broken_image,
+                                        size: 40,
+                                        color: Colors.grey[700],
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
-                              SizedBox(height: 4),
-                              // Text(
-                              //   photo.title,
-                              //   maxLines: 1,
-                              //   overflow: TextOverflow.ellipsis,
-                              //   textAlign: TextAlign.center,
-                              //   style: TextStyle(fontSize: 12),
-                              // ),
-                              Text("ảnh ${idx + 1}"),
+                              const SizedBox(height: 4),
+                              Text("Ảnh ${idx + 1}"),
                             ],
                           );
                         },
@@ -100,7 +110,7 @@ class AlbumInPage extends StatelessWidget {
             } else if (state is PhotoError) {
               return Center(child: Text('Lỗi: ${state.message}'));
             } else {
-              return Center(child: Text('Không có dữ liệu'));
+              return const Center(child: Text('Không có dữ liệu'));
             }
           },
         ),

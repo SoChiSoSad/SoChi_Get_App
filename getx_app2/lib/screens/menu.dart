@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:getx_app2/models/userModel.dart';
+import 'package:getx_app2/pages/setting.dart';
 import 'package:getx_app2/pages/taikhoan.dart';
 import 'package:getx_app2/screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,8 +10,6 @@ class MenuInPage extends StatelessWidget {
   final UserModel user;
 
   MenuInPage({required this.user});
-
-  BuildContext? get context => null;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +44,7 @@ class MenuInPage extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (isLargeScreen) Expanded(child: _navBarItems()),
+                if (isLargeScreen) Expanded(child: _navBarItems(context)),
               ],
             ),
           ),
@@ -56,7 +55,7 @@ class MenuInPage extends StatelessWidget {
             ),
           ],
         ),
-        drawer: isLargeScreen ? null : _drawer(),
+        drawer: isLargeScreen ? null : _drawer(context),
         body: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -78,31 +77,80 @@ class MenuInPage extends StatelessWidget {
     );
   }
 
-  Widget _drawer() => Drawer(
-    child: ListView(
-      children:
-          _menuItems
-              .map(
-                (item) => ListTile(
-                  onTap: () {
-                    _scaffoldKey.currentState?.openEndDrawer();
-                    if (item == 'Account') {
-                      Navigator.push(
-                        context!,
-                        MaterialPageRoute(
-                          builder: (_) => TaiKhoanPage(user: user),
-                        ),
-                      );
-                    }
-                  },
-                  title: Text(item),
-                ),
-              )
-              .toList(),
-    ),
-  );
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (dialogContext) => AlertDialog(
+            title: const Text('Đăng xuất'),
+            content: const Text('Bạn có chắc muốn đăng xuất?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Hủy'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.clear();
+                  Navigator.pop(dialogContext);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => LoginScreen()),
+                  );
+                },
+                child: const Text('Đăng xuất'),
+              ),
+            ],
+          ),
+    );
+  }
 
-  Widget _navBarItems() => Row(
+  Widget _drawer(BuildContext context) {
+    return Drawer(
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 16.0),
+        child: ListView(
+          children:
+              _menuItems
+                  .map(
+                    (item) => ListTile(
+                      title: Text(item),
+                      textColor: Colors.black,
+                      onTap: () {
+                        Navigator.pop(context);
+                        switch (item) {
+                          case 'Account':
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => TaiKhoanPage(user: user),
+                              ),
+                            );
+                            break;
+                          case 'Settings':
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => SettingsPage2(),
+                              ),
+                            );
+                            break;
+                          case 'Sign Out':
+                            _showLogoutDialog(context);
+                            break;
+                        }
+                      },
+                    ),
+                  )
+                  .toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _navBarItems(BuildContext context) => Row(
     mainAxisAlignment: MainAxisAlignment.end,
     crossAxisAlignment: CrossAxisAlignment.center,
     children:
@@ -110,13 +158,24 @@ class MenuInPage extends StatelessWidget {
             .map(
               (item) => InkWell(
                 onTap: () {
-                  if (item == 'Account') {
-                    Navigator.push(
-                      context!,
-                      MaterialPageRoute(
-                        builder: (_) => TaiKhoanPage(user: user),
-                      ),
-                    );
+                  switch (item) {
+                    case 'Account':
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TaiKhoanPage(user: user),
+                        ),
+                      );
+                      break;
+                    case 'Settings':
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => SettingsPage2()),
+                      );
+                      break;
+                    case 'Sign Out':
+                      _showLogoutDialog(context);
+                      break;
                   }
                 },
                 child: Padding(
@@ -159,37 +218,7 @@ class _ProfileIcon extends StatelessWidget {
             MaterialPageRoute(builder: (_) => TaiKhoanPage(user: user)),
           );
         } else if (item == Menu.itemThree) {
-          showDialog(
-            context: context,
-            builder:
-                (dialogContext) => AlertDialog(
-                  title: const Text('Đăng xuất'),
-                  content: const Text('Bạn có chắc muốn đăng xuất?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      child: const Text('Hủy'),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        // Clear SharedPreferences
-                        final prefs = await SharedPreferences.getInstance();
-                        await prefs.clear(); // Or prefs.remove('auth_token');
-
-                        // Close dialog
-                        Navigator.pop(dialogContext);
-
-                        // Navigate to LoginScreen
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => LoginScreen()),
-                        );
-                      },
-                      child: const Text('Đăng xuất'),
-                    ),
-                  ],
-                ),
-          );
+          MenuInPage(user: user)._showLogoutDialog(context);
         }
       },
       itemBuilder:
@@ -231,22 +260,14 @@ class _UserHeader extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color.fromARGB(
-                    255,
-                    227,
-                    227,
-                    227,
-                  ), // Màu của border
-                  width: 2, // Độ dày của border
+                  color: const Color.fromARGB(255, 227, 227, 227),
+                  width: 2,
                 ),
               ),
               child: CircleAvatar(
                 foregroundColor: Colors.white,
                 radius: 40,
                 child: Text("ảnh", style: TextStyle(color: Colors.black)),
-                // backgroundImage: const NetworkImage(
-                //   'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=1470&q=80',
-                // ),
                 backgroundColor: const Color.fromARGB(255, 205, 205, 205),
               ),
             ),
@@ -316,11 +337,9 @@ class _QuickActions extends StatelessWidget {
                 icon: Icons.settings,
                 label: 'Cài đặt',
                 onTap: () {
-                  // TODO: Navigate to Settings page
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Chức năng cài đặt đang phát triển'),
-                    ),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => SettingsPage2()),
                   );
                 },
               ),
@@ -331,30 +350,7 @@ class _QuickActions extends StatelessWidget {
             icon: Icons.logout,
             label: 'Đăng xuất',
             onTap: () {
-              showDialog(
-                context: context,
-                builder:
-                    (context) => AlertDialog(
-                      title: const Text('Đăng xuất'),
-                      content: const Text('Bạn có chắc muốn đăng xuất?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Hủy'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (_) => LoginScreen()),
-                            );
-                          },
-                          child: const Text('Đăng xuất'),
-                        ),
-                      ],
-                    ),
-              );
+              MenuInPage(user: user)._showLogoutDialog(context);
             },
             isFullWidth: true,
           ),

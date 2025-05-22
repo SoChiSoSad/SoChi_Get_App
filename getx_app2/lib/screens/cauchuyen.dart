@@ -19,10 +19,8 @@ class CauchuyenInPage extends StatefulWidget {
 
 class _CauchuyenInPageState extends State<CauchuyenInPage> {
   List<PhotoModel> _randomPhotos = [];
-    List<PhotoModel> _randomPhotosTuan = [];
+  List<PhotoModel> _randomPhotosTuan = [];
   List<PhotoModel> _randomPhotosDacBiet = [];
-
-  // DateTime? _lastUpdate; //lưu trữ 1 ngày
 
   @override
   void initState() {
@@ -32,16 +30,13 @@ class _CauchuyenInPageState extends State<CauchuyenInPage> {
 
   Future<void> _loadRandomPhotos() async {
     final prefs = await SharedPreferences.getInstance();
-    // final lastUpdateStr = prefs.getString('last_update');
     final now = DateTime.now();
 
-
-// điều kiện lưu trữ ảnh 1 ngày
+    // Bạn có thể bật phần này nếu muốn giới hạn cập nhật mỗi ngày
+    // final lastUpdateStr = prefs.getString('last_update');
     // if (lastUpdateStr != null) {
-    //   _lastUpdate = DateTime.parse(lastUpdateStr);
-    //   if (now.difference(_lastUpdate!).inDays < 1) {
-    //     return;
-    //   }
+    //   final lastUpdate = DateTime.parse(lastUpdateStr);
+    //   if (now.difference(lastUpdate).inDays < 1) return;
     // }
 
     context.read<PhotoBloc>().add(FetchPhotos());
@@ -71,37 +66,43 @@ class _CauchuyenInPageState extends State<CauchuyenInPage> {
               margin: const EdgeInsets.symmetric(horizontal: 5.0),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10.0),
-                image: DecorationImage(
-                  image: NetworkImage(photo.thumbnailUrl),
-                  fit: BoxFit.cover,
-                ),
               ),
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    borderRadius: const BorderRadius.vertical(
-                      bottom: Radius.circular(10.0),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10.0),
+                    child: Image.network(
+                      photo.thumbnailUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[300],
+                          child: Icon(Icons.broken_image,
+                              size: 60, color: Colors.grey[700]),
+                        );
+                      },
                     ),
                   ),
-                  // child: Text(
-                  //   photo.title,
-                  //   style: const TextStyle(
-                  //     color: Colors.white,
-                  //     fontSize: 14,
-                  //   ),
-                  //   maxLines: 2,
-                  //   overflow: TextOverflow.ellipsis,
-                  //   textAlign: TextAlign.center,
-                  // ),
-
-                  child: Text(
-                    'ảnh ${photos.indexOf(photo) + 1}',
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(10.0),
+                        ),
+                      ),
+                      child: Text(
+                        'Ảnh ${photos.indexOf(photo) + 1}',
+                        style: const TextStyle(color: Colors.white),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             );
           },
@@ -110,6 +111,7 @@ class _CauchuyenInPageState extends State<CauchuyenInPage> {
     );
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -132,61 +134,35 @@ class _CauchuyenInPageState extends State<CauchuyenInPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Section: Đề xuất ảnh hay
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'Đề xuất ảnh hay',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                if (state is PhotoLoading)
-                  const Center(child: CircularProgressIndicator())
-                else if (state is PhotoError)
-                  Center(child: Text('Lỗi: ${state.message}'))
-                else if (state is PhotoLoaded && _randomPhotos.isNotEmpty)
-                  _buildCarousel(_randomPhotos)
-                else
-                  const Center(child: Text('Không có ảnh để hiển thị')),
-
-                // Section: Đề xuất ảnh trong tuần
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'Đề xuất ảnh trong tuần',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                if (state is PhotoLoading)
-                  const Center(child: CircularProgressIndicator())
-                else if (state is PhotoError)
-                  Center(child: Text('Lỗi: ${state.message}'))
-                else if (state is PhotoLoaded && _randomPhotosTuan.isNotEmpty)
-                  _buildCarousel(_randomPhotosTuan)
-                else
-                  const Center(child: Text('Không có ảnh để hiển thị')),
-
-                // Section: Đề xuất ảnh đặc biệt
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'Đề xuất ảnh đặc biệt',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                if (state is PhotoLoading)
-                  const Center(child: CircularProgressIndicator())
-                else if (state is PhotoError)
-                  Center(child: Text('Lỗi: ${state.message}'))
-                else if (state is PhotoLoaded && _randomPhotosDacBiet.isNotEmpty)
-                  _buildCarousel(_randomPhotosDacBiet)
-                else
-                  const Center(child: Text('Không có ảnh để hiển thị')),
+                _buildSection('Đề xuất ảnh hay', state, _randomPhotos),
+                _buildSection('Đề xuất ảnh trong tuần', state, _randomPhotosTuan),
+                _buildSection('Đề xuất ảnh đặc biệt', state, _randomPhotosDacBiet),
               ],
             ),
           );
         },
       ),
+    );
+  }
+
+  Widget _buildSection(String title, PhotoState state, List<PhotoModel> photos) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(title,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        ),
+        if (state is PhotoLoading)
+          const Center(child: CircularProgressIndicator())
+        else if (state is PhotoError)
+          Center(child: Text('Lỗi: ${state.message}'))
+        else if (state is PhotoLoaded && photos.isNotEmpty)
+          _buildCarousel(photos)
+        else
+          const Center(child: Text('Không có ảnh để hiển thị')),
+      ],
     );
   }
 }

@@ -1,3 +1,5 @@
+
+
 import 'package:getx_app2/models/photoModel.dart';
 
 abstract class PhotoState {}
@@ -8,8 +10,9 @@ class PhotoLoading extends PhotoState {}
 
 class PhotoLoaded extends PhotoState {
   final List<PhotoModel> photos;
+  final bool hasReachedMax;
 
-  PhotoLoaded(this.photos);
+  PhotoLoaded({required this.photos, this.hasReachedMax = false});
 }
 
 class PhotoError extends PhotoState {

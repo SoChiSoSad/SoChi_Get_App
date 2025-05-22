@@ -12,6 +12,22 @@ class PhotoInPage extends StatelessWidget {
 
   PhotoInPage({required this.user});
 
+  void _openGallery(
+    BuildContext context,
+    List<PhotoModel> photos,
+    int initialIndex,
+  ) {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        opaque: false,
+        pageBuilder:
+            (_, __, ___) =>
+                FullScreenGallery(photos: photos, initialIndex: initialIndex),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -19,8 +35,8 @@ class PhotoInPage extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Tất cả ảnh của tôi'),
-          automaticallyImplyLeading: false,
           centerTitle: true,
+          automaticallyImplyLeading: false,
         ),
         body: BlocBuilder<PhotoBloc, PhotoState>(
           builder: (context, state) {
@@ -46,7 +62,7 @@ class PhotoInPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '📁 Album $albumId',
+                          'Album $albumId',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -57,48 +73,63 @@ class PhotoInPage extends StatelessWidget {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: albumPhotos.length,
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                            childAspectRatio: 0.85,
-                          ),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10,
+                                childAspectRatio: 0.85,
+                              ),
                           itemBuilder: (context, idx) {
                             final photo = albumPhotos[idx];
-                            return Card(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 4,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        photo.thumbnailUrl,
-                                        height: 100,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    // Text(
-                                    //   photo.title,
-                                    //   maxLines: 2,
-                                    //   overflow: TextOverflow.ellipsis,
-                                    //   textAlign: TextAlign.center,
-                                    //   style: const TextStyle(fontSize: 14),
-                                    // ),
-                                    Text("ảnh ${idx + 1}"),
-                                  ],
+                            return GestureDetector(
+                              onTap:
+                                  () => _openGallery(context, albumPhotos, idx),
+
+                              child: Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 4,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    photo.thumbnailUrl,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: double.infinity,
+
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Colors.grey[300],
+                                        child: Center(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(
+                                                Icons.broken_image,
+                                                size: 40,
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                "${idx + 1}",
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
                             );
                           },
                         ),
-                        const SizedBox(height: 20),
                       ],
                     ),
                   );
@@ -109,6 +140,108 @@ class PhotoInPage extends StatelessWidget {
             }
             return const Center(child: Text('Đang tải...'));
           },
+        ),
+      ),
+    );
+  }
+}
+
+/*
+** //Todo : chọn ảnh để full màn hình điện thoại 
+**/ 
+class FullScreenGallery extends StatefulWidget {
+  final List<PhotoModel> photos;
+  final int initialIndex;
+
+  const FullScreenGallery({
+    Key? key,
+    required this.photos,
+    required this.initialIndex,
+  }) : super(key: key);
+
+  @override
+  State<FullScreenGallery> createState() => _FullScreenGalleryState();
+}
+
+class _FullScreenGalleryState extends State<FullScreenGallery> {
+  late PageController _pageController;
+  late int currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: currentIndex);
+  }
+
+  void _closeViewer() {
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onVerticalDragEnd: (details) {
+        // Vuốt xuống để đóng
+        if (details.primaryVelocity != null && details.primaryVelocity! > 300) {
+          _closeViewer();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black.withOpacity(0.95),
+        body: Stack(
+          alignment: Alignment.topRight,
+          children: [
+            PageView.builder(
+              controller: _pageController,
+              itemCount: widget.photos.length,
+              onPageChanged: (index) {
+                setState(() {
+                  currentIndex = index;
+                });
+              },
+              itemBuilder: (context, index) {
+                final photo = widget.photos[index];
+                final currentImageIndex = index + 1;
+                return InteractiveViewer(
+                  child: Center(
+                    child: Image.network(
+                      photo.url,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.broken_image,
+                                color: Colors.white,
+                                size: 80,
+                              ),
+                              Text(
+                                "$currentImageIndex",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+            SafeArea(
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                onPressed: _closeViewer,
+              ),
+            ),
+          ],
         ),
       ),
     );

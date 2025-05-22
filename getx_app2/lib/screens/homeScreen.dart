@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:getx_app2/bloc/photo/photo_event.dart';
+import 'package:getx_app2/bloc/photo/photo_bloc.dart';
 import 'package:getx_app2/models/userModel.dart';
 import 'package:getx_app2/screens/album.dart';
 import 'package:getx_app2/screens/menu.dart';

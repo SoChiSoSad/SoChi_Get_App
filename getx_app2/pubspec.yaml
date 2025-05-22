@@ -18,6 +18,13 @@ dependencies:
   carousel_slider: ^5.0.0
   equatable: ^2.0.5
   shared_preferences: ^2.3.0
+  get: ^4.6.5
+  get_it: ^7.2.0
+  injectable: ^2.1.0
+  injectable_generator: ^2.1.0
+  path_provider: ^2.0.15
+  path: ^1.9.0
+  image_picker: ^0.8.4+4
 
 dev_dependencies:
   flutter_test:
@@ -25,3 +32,6 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/images/
